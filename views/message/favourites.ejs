@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChatLock Messenger</title>
+  <title>ChatLock Messenger - Favorites</title>
   <meta name="description" content="Secure messaging platform with real-time chat capabilities">
 
   <!-- Web App Manifest for PWA -->
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"
     integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -606,6 +607,153 @@
         opacity: 1;
       }
     }
+
+    /* New styles for favorites page */
+    .favorite-icon {
+      color: var(--warning);
+      transition: all 0.2s ease;
+    }
+
+    .favorite-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .favorite-icon.active {
+      color: var(--warning);
+    }
+
+    .favorite-icon.inactive {
+      color: var(--gray-light);
+    }
+
+    .user-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .user-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--gray);
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      color: var(--primary);
+    }
+
+    .last-message-time {
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .dark-mode .last-message-time {
+      color: var(--gray-light);
+    }
+
+    .favorites-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .refresh-btn {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .refresh-btn:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .dark-mode .refresh-btn {
+      background-color: rgba(67, 97, 238, 0.2);
+    }
+
+    .dark-mode .refresh-btn:hover {
+      background-color: var(--primary);
+    }
+
+    .empty-favorites {
+      text-align: center;
+      padding: 3rem 0;
+    }
+
+    .empty-favorites-icon {
+      font-size: 4rem;
+      color: var(--gray-light);
+      margin-bottom: 1.5rem;
+    }
+
+    .empty-favorites-text {
+      font-size: 1.25rem;
+      color: var(--gray);
+      margin-bottom: 1.5rem;
+    }
+
+    .empty-favorites-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .empty-favorites-btn:hover {
+      background-color: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    .user-item-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .typing-indicator {
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-style: italic;
+    }
+
+    .dark-mode .typing-indicator {
+      color: var(--accent);
+    }
   </style>
 </head>
 
@@ -652,8 +800,6 @@
     </div>
   </header>
 
-  <!-- Sidebar Overlay -->
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
   <div class="flex min-h-screen">
     <!-- Sidebar Navigation -->
@@ -674,165 +820,174 @@
           </div>
         </div>
 
-        <!-- Profile Section -->
-        <div class="profile-section">
-          <a href="/api/v1/user/profile">
-            <div class="flex items-center space-x-3">
-              <img
-                src="<%= user.profilePic || 'https://res.cloudinary.com/dzdnwsojc/image/upload/v1746804708/rkwqxwswd9plkd7wpoy7.jpg' %>"
-                alt="Profile" class="avatar">
-              <div>
-                <p class="font-semibold ">@<%= user.username %>
-                </p>
-                <% if (user.username==='code_with_irfan' ) { %>
-                  <span title="Verified" class="verified-badge"><i class="fas fa-check-circle"></i></span>
-                  <% } %>
+                <div class="profile-section">
+          <div class="flex items-center space-x-3">
+            <img
+              src="<%= currentUser.profilePic || 'https://res.cloudinary.com/dzdnwsojc/image/upload/v1746804708/rkwqxwswd9plkd7wpoy7.jpg' %>"
+              alt="Profile" class="avatar">
+            <div>
+              <p class="font-semibold ">@<%= currentUser.username %>
+              </p>
+              <% if (currentUser.username==='code_with_irfan' ) { %>
+                <span title="Verified" class="verified-badge"><i class="fas fa-check-circle"></i></span>
+                <% } %>
 
-                    <p class="text-sm text-success online-status" <%=user.isOnline==='true' ? 'online-status'
-                      : 'offline-status' %> truncate">
-                      <%= user.isOnline==="true" ? 'Online' : 'Offline' %>
-                    </p>
-          </a>
+                  <p class="text-sm text-success online-status" <%=currentUser.isOnline===1 ? 'online-status'
+                    : 'offline-status' %> truncate">
+                    <%= currentUser.isOnline==="true" ? 'Online' : 'Offline' %>
+                  </p>
+            </div>
+          </div>
         </div>
-      </div>
-      </a>
-  </div>
-
-  <!-- Search Bar -->
-  <div class="relative mb-6">
-    <div class="relative">
-      <input type="text" id="userSearch" placeholder="Search users..."
-        class="input-field w-full pl-10 pr-4 py-2 bg-gray-50 text-sm">
-      <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-    </div>
-    <div id="searchResults" class="search-results">
-      <div id="searchLoading" class="p-4 hidden">
-        <div class="flex justify-center">
-          <div class="spinner"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <nav class="space-y-2 flex-1">
-    <a
-      class="flex items-center px-4 py-2 rounded-lg bg-primary-light text-primary font-medium hover:bg-primary hover:text-white transition-colors">
-      <i class="fas fa-inbox mr-3"></i> Inbox
-      <span id="sidebarUnreadCount" class="ml-auto bg-primary text-white text-xs px-2 py-1 rounded-full"
-        style="display: none;">0</span>
-    </a>
-    <a href="#"
-      class="flex items-center px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors">
-      <i class="fas fa-star mr-3"></i> Starred
-    </a>
 
 
-    <a href="/api/v1/user/favourate"
-      class="flex items-center px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors">
-      <i class="fas fa-clock mr-3"></i> Favourate
-    </a>
-    <a href="/api/v1/user/setting"
-      class="flex items-center px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors">
-      <i class="fas fa-cog mr-3"></i> Settings
-    </a>
-  </nav>
+      
 
-  <!-- Logout Button -->
-  <a href="/api/v1/auth/logout" class="mt-4 w-full py-2 px-4 text-center btn btn-primary hover:shadow-md">
-    Logout
-  </a>
-  </div>
-  </aside>
 
-  <!-- Main Content Area -->
-  <main class="main-content flex-1 p-6">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Your Conversations</h2>
-
-      <% if (query.success==='UserAddedToFavourites' ) { %>
-        <div class="bg-green-100 text-green-800 px-4 py-2 rounded">✅ User added to favourites</div>
-        <% } %>
-          <% if (query.success==='UserRemovedFromFavourites' ) { %>
-            <div class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded">❌ User removed from favourites</div>
-            <% } %>
-
-              <!-- Search Info (Mobile) -->
-              <div class="md:hidden mb-4 bg-primary-light p-3 rounded-lg">
-                <p class="text-sm text-primary">
-                  <i class="fas fa-info-circle mr-2"></i> Use the search in the sidebar to find users
-                </p>
+        <div class="relative mb-6">
+          <div class="relative">
+            <input type="text" id="userSearch" placeholder="Search users..."
+              class="input-field w-full pl-10 pr-4 py-2 bg-gray-50 text-sm">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+          <div id="searchResults" class="search-results">
+            <div id="searchLoading" class="p-4 hidden">
+              <div class="flex justify-center">
+                <div class="spinner"></div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div id="userListContainer" class="space-y-3">
-                <!-- Skeleton Loading for User List -->
-                <div id="userListSkeleton" class="space-y-3 hidden">
-                  <% for(let i=0; i < 3; i++) { %>
-                    <div class="bg-white p-4 rounded-lg shadow-sm">
-                      <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 rounded-full skeleton"></div>
-                        <div class="flex-1 space-y-2">
-                          <div class="h-4 w-1/3 skeleton"></div>
-                          <div class="h-3 w-1/4 skeleton"></div>
-                        </div>
+             <a href="/api/v1/user/users"
+            class="flex items-center px-4 py-2 rounded-lg bg-primary-light text-primary font-medium hover:bg-primary hover:text-white transition-colors">
+            <i class="fas fa-inbox mr-3"></i> Home
+            <span id="sidebarUnreadCount" class="ml-auto bg-primary text-white text-xs px-2 py-1 rounded-full"
+              style="display: none;">0</span>
+          </a>
+
+      
+
+
+           <a href="/api/v1/user/setting"
+            class="flex items-center px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors">
+            <i class="fas fa-cog mr-3"></i> Settings
+          </a>
+      
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content flex-1 p-6">
+      <div class="max-w-3xl mx-auto">
+        <div class="favorites-header">
+          <h2 class="text-2xl font-semibold text-gray-800">Favorite Conversations</h2>
+          <button id="refreshFavorites" class="refresh-btn">
+            <i class="fas fa-sync-alt"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <!-- Search Info (Mobile) -->
+        <div class="md:hidden mb-4 bg-primary-light p-3 rounded-lg">
+          <p class="text-sm text-primary">
+            <i class="fas fa-info-circle mr-2"></i> Use the search in the sidebar to find users
+          </p>
+        </div>
+
+        <div id="userListContainer" class="space-y-3">
+          <!-- Skeleton Loading for User List -->
+          <div id="userListSkeleton" class="space-y-3 hidden">
+            <% for(let i=0; i < 3; i++) { %>
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 rounded-full skeleton"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-4 w-1/3 skeleton"></div>
+                    <div class="h-3 w-1/4 skeleton"></div>
+                  </div>
+                </div>
+              </div>
+              <% } %>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyFavoritesState" class="empty-favorites <%= favourites.length > 0 ? 'hidden' : '' %>">
+            <div class="empty-favorites-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <h3 class="empty-favorites-text">No favorite conversations yet</h3>
+            <p class="text-gray-500 mb-6">Your favorite contacts will appear here for quick access</p>
+            <button id="findFriendsBtn" class="empty-favorites-btn">
+              <i class="fas fa-search mr-2"></i> Find Friends
+            </button>
+          </div>
+
+          <!-- Actual User List -->
+          <div id="userListContent" class="space-y-3">
+            <% favourites.forEach(user=> { %>
+              <div class="user-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all dark:bg-dark-card"
+                data-user-id="<%= user._id %>">
+                <div class="user-item-content">
+                  <div class="relative">
+                    <img src="<%= user.profilePic %>" alt="<%= user.username %>" class="avatar">
+                    <% if (user.unreadCount> 0) { %>
+                      <span class="notification-badge">
+                        <%= user.unreadCount %>
+                      </span>
+                      <% } %>
+                  </div>
+                  <div class="user-info">
+                    <div class="user-item-header">
+                      <div class="user-name">
+                        <span class="font-semibold truncate">@<%= user.username %></span>
+                        <% if (user.username==='code_with_irfan' ) { %>
+                          <span title="Verified" class="verified-badge"><i class="fas fa-check-circle"></i></span>
+                          <% } %>
+                      </div>
+                      <div class="user-actions">
+                        <button class="action-btn favorite-toggle" data-user-id="<%= user._id %>" title="Remove from favorites">
+                          <i class="fas fa-star favorite-icon active"></i>
+                        </button>
                       </div>
                     </div>
-                    <% } %>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="empty-state <%= allUser.length > 0 ? 'hidden' : '' %>">
-                  <i class="fas fa-comments empty-state-icon"></i>
-                  <h3 class="text-lg font-medium text-gray-700 mb-2">No conversations yet</h3>
-                  <p class="text-gray-500 mb-4">Start a new conversation by searching for users</p>
-                </div>
-
-                <!-- Actual User List -->
-                <div id="userListContent" class="space-y-3">
-                  <% allUser.forEach(user=> { %>
-                    <div class="user-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all"
-                      data-user-id="<%= user._id %>">
-                      <a href="/api/v1/user/chat/<%= user._id %>" class="flex items-center space-x-4 user-link">
-                        <div class="relative">
-                          <img src="<%= user.profilePic %>" alt="<%= user.username %>" class="avatar">
-                          <% if (user.unreadCount> 0) { %>
-                            <span class="notification-badge">
-                              <%= user.unreadCount %>
-                            </span>
-                            <% } %>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center">
-                            <span class="font-semibold  truncate">@<%= user.username %></span>
-                            <% if (user.username==='code_with_irfan' ) { %>
-                              <span title="Verified" class="verified-badge"><i class="fas fa-check-circle"></i></span>
-                              <% } %>
-                          </div>
-                          <p class="text-sm <%= user.isOnline === 1 ? 'online-status' : 'offline-status' %> truncate">
-                            <%= user.isOnline==='true' ? 'Online' : 'Offline' %>
-                          </p>
-                        </div>
-
-                      </a>
-                    </div>
-                    <% }) %>
+                    <p class="text-sm <%= user.isOnline === 1 ? 'online-status' : 'offline-status' %> truncate">
+                      <%= user.isOnline==='true' ? 'Online' : 'Offline' %>
+                    </p>
+                    <% if (user.lastMessage) { %>
+                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        <%= user.lastMessage.content %>
+                      </p>
+                      <p class="last-message-time">
+                        <%= new Date(user.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                      </p>
+                      <% } %>
+                  </div>
                 </div>
               </div>
-    </div>
-  </main>
+              <% }) %>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <!-- Mobile notification prompt -->
+  <!-- Sidebar Overlay (Mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Notification Prompt (Mobile) -->
   <div id="notificationPrompt" class="notification-prompt hidden">
     <i class="fas fa-bell"></i>
-    <span>Enable notifications to get message alerts</span>
-    <button id="enableNotifications">Enable</button>
-    <button id="dismissPrompt">Dismiss</button>
+    <span>Enable notifications for new messages</span>
+    <div class="flex gap-2">
+      <button id="enableNotifications" class="text-xs">Allow</button>
+      <button id="dismissPrompt" class="text-xs">Dismiss</button>
+    </div>
   </div>
 
   <script>
     // Current user context
-    const currentUserId = "<%= user._id %>";
+    const currentUserId = "<%= currentUser._id %>";
     const socket = io("/ChatLock", {
       auth: { token: currentUserId },
       transports: ['websocket']
@@ -843,12 +998,9 @@
     let currentChatUserId = null;
     let isUserInChat = false;
     let notifications = [];
-    let allUsers = JSON.parse('<%- JSON.stringify(allUser) %>');
+    let allUsers = JSON.parse('<%- JSON.stringify(favourites) %>');
     let isSearching = false;
     let darkMode = localStorage.getItem('darkMode') === 'true';
-
-
-
 
     // DOM Elements
     const notificationList = document.getElementById('notificationList');
@@ -858,6 +1010,9 @@
     const notificationPrompt = document.getElementById('notificationPrompt');
     const enableNotificationsBtn = document.getElementById('enableNotifications');
     const dismissPromptBtn = document.getElementById('dismissPrompt');
+    const refreshFavoritesBtn = document.getElementById('refreshFavorites');
+    const findFriendsBtn = document.getElementById('findFriendsBtn');
+    const emptyFavoritesState = document.getElementById('emptyFavoritesState');
 
     // Initialize dark mode
     function initDarkMode() {
@@ -887,70 +1042,6 @@
           setTimeout(() => {
             notificationPrompt.classList.remove('hidden');
           }, 5000);
-        }
-      }
-    }
-
-    // Request notification permission
-    async function requestNotificationPermission() {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          // Register service worker for push notifications
-          if ('serviceWorker' in navigator) {
-            try {
-              const registration = await navigator.serviceWorker.register('/sw.js');
-              console.log('Service Worker registered:', registration);
-
-              // Subscribe to push notifications
-              const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY' // Replace with your VAPID public key
-              });
-
-              // Send subscription to server
-              await fetch('/api/v1/user/push-subscribe', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                },
-                body: JSON.stringify({ subscription })
-              });
-
-              notificationPrompt.classList.add('hidden');
-              showToast('Notifications enabled!', 'success');
-            } catch (err) {
-              console.error('Service Worker registration failed:', err);
-              showToast('Failed to enable notifications', 'error');
-            }
-          }
-        } else {
-          showToast('Notifications blocked', 'warning');
-        }
-      } catch (err) {
-        console.error('Error requesting notification permission:', err);
-        showToast('Error enabling notifications', 'error');
-      }
-    }
-
-    // Handle incoming push notifications
-    function handlePushNotification(data) {
-      if (!document.hasFocus()) {
-        const title = `New message from ${data.senderName}`;
-        const options = {
-          body: data.preview,
-          icon: data.senderAvatar || '/default-avatar.png',
-          data: { url: `/api/v1/user/chat/${data.senderId}` },
-          vibrate: [200, 100, 200]
-        };
-
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, options);
-          });
-        } else if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(title, options);
         }
       }
     }
@@ -994,7 +1085,7 @@
     }
 
     function updateUserStatus(userId, isOnline) {
-      const userElement = document.querySelector(`a[href="/api/v1/user/chat/${userId}"]`);
+      const userElement = document.querySelector(`.user-item[data-user-id="${userId}"]`);
       if (!userElement) return;
 
       const statusElement = userElement.querySelector('p.text-sm');
@@ -1004,7 +1095,10 @@
     }
 
     function updateUserBadge(userId, count) {
-      const avatarContainer = document.querySelector(`a[href="/api/v1/user/chat/${userId}"] .relative`);
+      const userElement = document.querySelector(`.user-item[data-user-id="${userId}"]`);
+      if (!userElement) return;
+
+      const avatarContainer = userElement.querySelector('.relative');
       if (!avatarContainer) return;
 
       let badge = avatarContainer.querySelector('.notification-badge');
@@ -1062,9 +1156,6 @@
       }
     }
 
-
-
-    // / Modify the renderNotifications function to NOT mark all as viewed when dropdown opens
     async function renderNotifications() {
       const container = document.getElementById('notificationItems');
       container.innerHTML = '<div class="p-4 flex justify-center"><div class="spinner"></div></div>';
@@ -1079,7 +1170,7 @@
         const data = await res.json();
 
         if (data.success) {
-          notifications = data.notifications;
+          const notifications = data.notifications;
           container.innerHTML = '';
 
           if (notifications.length === 0) {
@@ -1096,24 +1187,22 @@
             const readIcon = isRead ? '<i class="fas fa-check-circle text-success ml-2" title="Read"></i>' : '';
 
             item.innerHTML = `
-          <div class="flex items-start gap-3">
-            <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-              ${notification.senderDetails?.profilePic
+              <div class="flex items-start gap-3">
+                <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                  ${notification.senderDetails?.profilePic
                 ? `<img src="${notification.senderDetails.profilePic}" alt="${notification.senderDetails.username}" class="h-full w-full object-cover">`
                 : `<i class="fas fa-user text-gray-500 flex items-center justify-center h-full w-full"></i>`}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center">
-                <p class="text-sm font-medium text-gray-900 truncate">${notification.senderDetails?.username || 'System'}</p>
-                ${readIcon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center">
+                    <p class="text-sm font-medium text-gray-900 truncate">${notification.senderDetails?.username || 'System'}</p>
+                    ${readIcon}
+                  </div>
+                  <p class="text-sm text-gray-600 truncate">${notification.message}</p>
+                  <p class="text-xs text-gray-400 mt-1">${formatTime(notification.createdAt)}</p>
+                </div>
               </div>
-              <p class="text-sm text-gray-600 truncate">${notification.message}</p>
-              <p class="text-xs text-gray-400 mt-1">${formatTime(notification.createdAt)}</p>
-            </div>
-          </div>
-        `;
-
-
+            `;
 
             // Mark notification as read when clicked
             item.addEventListener('click', async () => {
@@ -1125,28 +1214,13 @@
                       'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                     }
                   });
-
-                  // Update the unread count for this user
-                  if (notification.senderDetails?._id) {
-                    if (userUnreadCounts[notification.senderDetails._id] > 0) {
-                      userUnreadCounts[notification.senderDetails._id]--;
-                      updateUserBadge(notification.senderDetails._id, userUnreadCounts[notification.senderDetails._id]);
-                      updateGlobalUnreadCount();
-                    }
-                  }
-
                   notification.isRead = true;
                   item.classList.remove('bg-primary-light');
-                  item.querySelector('.text-success')?.remove(); // Remove any existing read icon
-                  const usernameElement = item.querySelector('.text-gray-900');
-                  if (usernameElement) {
-                    usernameElement.insertAdjacentHTML('afterend', '<i class="fas fa-check-circle text-success ml-2" title="Read"></i>');
-                  }
+                  renderNotifications(); // Re-render to show read icon
                 } catch (err) {
                   console.error('Failed to mark individual notification as viewed:', err);
                 }
               }
-
               // Navigate to chat
               if (notification.senderDetails?._id) {
                 window.location.href = `/api/v1/user/chat/${notification.senderDetails._id}`;
@@ -1155,76 +1229,28 @@
 
             container.appendChild(item);
           });
-        }
-      } catch (err) {
-        console.error('Error loading notifications:', err);
-        container.innerHTML = '<div class="p-4 text-center text-gray-500">Error loading notifications</div>';
-      }
-    }
 
+          // Mark all notifications as viewed when the dropdown is opened
+          await fetch('/api/v1/user/notifications/mark-viewed', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+          });
 
-
-
-
-
-    async function markAllNotificationsAsRead() {
-      try {
-        const response = await fetch('/api/v1/user/notifications/mark-all-read', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          }
-        });
-
-        if (response.ok) {
           // Reset unread badge counts
           Object.keys(userUnreadCounts).forEach(id => {
             userUnreadCounts[id] = 0;
             updateUserBadge(id, 0);
           });
           updateGlobalUnreadCount();
-          await renderNotifications(); // Refresh the notification list
-          showToast("All notifications marked as read!", "success");
         }
       } catch (err) {
-        console.error("Error marking notifications as read:", err);
-        showToast("Failed to mark notifications as read.", "error");
+        console.error('Error loading notifications:', err);
+        container.innerHTML = '<div class="p-4 text-center text-gray-500">Error loading notifications</div>';
       }
     }
-
-    // Update the notification button click handler
-    document.getElementById('notificationBtn')?.addEventListener('click', async (e) => {
-      e.stopPropagation();
-
-      if (notificationList.classList.contains('show')) {
-        notificationList.classList.remove('show');
-        setTimeout(() => {
-          notificationList.style.display = 'none';
-        }, 200);
-        return;
-      }
-
-      notificationList.style.display = 'block';
-      setTimeout(() => {
-        notificationList.classList.add('show');
-      }, 10);
-
-      await renderNotifications();
-    });
-
-    // Update the mark all as read button
-    document.getElementById('markDropdownRead')?.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const markReadSpinner = document.getElementById('markReadSpinner');
-      markReadSpinner.classList.remove('hidden');
-
-      try {
-        await markAllNotificationsAsRead();
-      } finally {
-        markReadSpinner.classList.add('hidden');
-      }
-    });
 
     function formatTime(timestamp) {
       const now = new Date();
@@ -1297,6 +1323,127 @@
       isSearching = false;
     }
 
+    // Toggle user favorite status
+    async function toggleFavorite(userId) {
+      const userElement = document.querySelector(`.user-item[data-user-id="${userId}"]`);
+      if (!userElement) return;
+
+      const favoriteBtn = userElement.querySelector('.favorite-toggle i');
+      const isFavorite = favoriteBtn.classList.contains('active');
+
+      try {
+        const response = await fetch(`/api/v1/user/favorites/${userId}`, {
+          method: isFavorite ? 'DELETE' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+
+        if (response.ok) {
+          if (isFavorite) {
+            favoriteBtn.classList.remove('active');
+            favoriteBtn.classList.add('inactive');
+            favoriteBtn.title = 'Add to favorites';
+            userElement.remove();
+            
+            // Show empty state if no favorites left
+            const favoritesCount = document.querySelectorAll('.user-item').length;
+            if (favoritesCount === 0) {
+              emptyFavoritesState.classList.remove('hidden');
+            }
+          } else {
+            favoriteBtn.classList.add('active');
+            favoriteBtn.classList.remove('inactive');
+            favoriteBtn.title = 'Remove from favorites';
+          }
+          
+          showToast(isFavorite ? 'Removed from favorites' : 'Added to favorites', 'success');
+        } else {
+          throw new Error('Failed to update favorite status');
+        }
+      } catch (err) {
+        console.error('Error toggling favorite:', err);
+        showToast('Failed to update favorite status', 'error');
+      }
+    }
+
+    // Refresh favorites list
+    async function refreshFavorites() {
+      const userListContent = document.getElementById('userListContent');
+      const userListSkeleton = document.getElementById('userListSkeleton');
+      
+      userListContent.classList.add('hidden');
+      userListSkeleton.classList.remove('hidden');
+      
+      try {
+        const response = await fetch('/api/v1/user/favorites', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          allUsers = data.favorites;
+          
+          if (allUsers.length === 0) {
+            emptyFavoritesState.classList.remove('hidden');
+            userListContent.innerHTML = '';
+          } else {
+            emptyFavoritesState.classList.add('hidden');
+            // Re-render the favorites list
+            userListContent.innerHTML = allUsers.map(user => `
+              <div class="user-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all dark:bg-dark-card"
+                data-user-id="${user._id}">
+                <div class="user-item-content">
+                  <div class="relative">
+                    <img src="${user.profilePic}" alt="${user.username}" class="avatar">
+                    ${user.unreadCount > 0 ? 
+                      `<span class="notification-badge">${user.unreadCount}</span>` : ''}
+                  </div>
+                  <div class="user-info">
+                    <div class="user-item-header">
+                      <div class="user-name">
+                        <span class="font-semibold truncate">@${user.username}</span>
+                        ${user.username === 'code_with_irfan' ? 
+                          `<span title="Verified" class="verified-badge"><i class="fas fa-check-circle"></i></span>` : ''}
+                      </div>
+                      <div class="user-actions">
+                        <button class="action-btn favorite-toggle" data-user-id="${user._id}" title="Remove from favorites">
+                          <i class="fas fa-star favorite-icon active"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <p class="text-sm ${user.isOnline === 1 ? 'online-status' : 'offline-status'} truncate">
+                      ${user.isOnline === 'true' ? 'Online' : 'Offline'}
+                    </p>
+                    ${user.lastMessage ? `
+                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        ${user.lastMessage.content}
+                      </p>
+                      <p class="last-message-time">
+                        ${new Date(user.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            `).join('');
+          }
+        } else {
+          throw new Error('Failed to fetch favorites');
+        }
+      } catch (err) {
+        console.error('Error refreshing favorites:', err);
+        showToast('Failed to refresh favorites', 'error');
+      } finally {
+        userListSkeleton.classList.add('hidden');
+        userListContent.classList.remove('hidden');
+      }
+    }
+
     // Socket.IO Event Listeners
     socket.on("user_online", (userId) => updateUserStatus(userId, true));
     socket.on("user_offline", (userId) => updateUserStatus(userId, false));
@@ -1364,7 +1511,7 @@
 
     async function updateUnreadCount() {
       try {
-        const res = await fetch('/api/v1/user/notifications/unread-count');
+        const res = await fetch('/api/notifications/unread-count');
         const { count } = await res.json();
         unreadNotifications = count;
         updateNotificationBadge();
@@ -1372,7 +1519,6 @@
         console.error('Failed to get unread count:', err);
       }
     }
-
 
     // DOM Event Listeners
     document.getElementById('markAllReadButton')?.addEventListener('click', async () => {
@@ -1473,46 +1619,39 @@
       }
     });
 
-    document.getElementById('menuToggle')?.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.add('open');
-      document.getElementById('sidebarOverlay').classList.add('open');
+    // Favorite toggle event listeners
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.favorite-toggle')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const userId = e.target.closest('.favorite-toggle').dataset.userId;
+        toggleFavorite(userId);
+      }
     });
 
-    document.getElementById('closeSidebar')?.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
+    // Refresh favorites button
+    refreshFavoritesBtn?.addEventListener('click', refreshFavorites);
 
-    document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
-
-    // Theme toggle listeners
-    themeToggle?.addEventListener('click', toggleDarkMode);
-    themeToggleMobile?.addEventListener('click', toggleDarkMode);
-
-    // Notification permission listeners
-    enableNotificationsBtn?.addEventListener('click', requestNotificationPermission);
-    dismissPromptBtn?.addEventListener('click', () => {
-      notificationPrompt.classList.add('hidden');
+    // Find friends button
+    findFriendsBtn?.addEventListener('click', () => {
+      document.getElementById('userSearch').focus();
     });
 
     // Add loading state for user clicks
-    document.querySelectorAll('.user-link').forEach(link => {
-      link.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const userItem = link.closest('.user-item');
-        const href = link.getAttribute('href');
-
-        userItem.classList.add('user-item-loading');
-
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          window.location.href = href;
-        } catch (err) {
-          console.error('Error navigating to chat:', err);
-          userItem.classList.remove('user-item-loading');
+    document.querySelectorAll('.user-item').forEach(item => {
+      item.addEventListener('click', async (e) => {
+        // Only navigate if not clicking on a button inside the user item
+        if (!e.target.closest('.action-btn')) {
+          const userId = item.dataset.userId;
+          item.classList.add('user-item-loading');
+          
+          try {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            window.location.href = `/api/v1/user/chat/${userId}`;
+          } catch (err) {
+            console.error('Error navigating to chat:', err);
+            item.classList.remove('user-item-loading');
+          }
         }
       });
     });
@@ -1538,7 +1677,6 @@
       const loadingOverlay = document.getElementById('loadingOverlay');
       const userListSkeleton = document.getElementById('userListSkeleton');
       const userListContent = document.getElementById('userListContent');
-      const emptyState = document.getElementById('emptyState');
 
       // Initialize dark mode
       initDarkMode();
@@ -1563,11 +1701,6 @@
 
         initializeBadges();
         checkActiveChat();
-
-        // Show empty state if no users
-        if (allUsers.length === 0) {
-          emptyState.classList.remove('hidden');
-        }
       }, 1000);
     }
 
@@ -1579,6 +1712,45 @@
         updateUserBadge(currentChatUserId, 0);
         updateGlobalUnreadCount();
       }
+    });
+
+    // Sidebar toggle functionality
+    const menuToggle = document.getElementById('menuToggle');
+    const closeSidebar = document.getElementById('closeSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    menuToggle?.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('open');
+    });
+
+    closeSidebar?.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('open');
+    });
+
+    sidebarOverlay?.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('open');
+    });
+
+    // Theme toggle functionality
+    themeToggle?.addEventListener('click', toggleDarkMode);
+    themeToggleMobile?.addEventListener('click', toggleDarkMode);
+
+    // Notification prompt buttons
+    enableNotificationsBtn?.addEventListener('click', () => {
+      Notification.requestPermission().then(permission => {
+        notificationPrompt.classList.add('hidden');
+        if (permission === 'granted') {
+          showToast('Notifications enabled!', 'success');
+        }
+      });
+    });
+
+    dismissPromptBtn?.addEventListener('click', () => {
+      notificationPrompt.classList.add('hidden');
     });
   </script>
 </body>

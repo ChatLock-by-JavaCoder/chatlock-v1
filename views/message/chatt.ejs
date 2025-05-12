@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Chat with <%= user.username %></title>
@@ -7,17 +8,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            primary: {
-              500: '#EC4899',
-              600: '#DB2777',
-            },
-            secondary: {
-              100: '#F3F4F6',
-              200: '#E5E7EB',
-            }
+            primary: { 500: '#3B82F6', 600: '#2563EB' },
+            secondary: { 100: '#F3F4F6', 200: '#E5E7EB' },
+            dark: { 700: '#1F2937', 800: '#111827', 900: '#0F172A' },
+          },
+          transitionProperty: {
+            'height': 'height',
+            'spacing': 'margin, padding',
+            'colors': 'background-color, border-color, color, fill, stroke',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.3s ease-out',
           }
         }
       }
@@ -27,224 +33,926 @@
   <style>
     ::-webkit-scrollbar {
       width: 6px;
+      height: 6px;
     }
+
     ::-webkit-scrollbar-thumb {
-      background: #EC4899; /* primary-500 */
+      background: #3B82F6;
+      border-radius: 10px;
+      transition: background-color 0.2s;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
       border-radius: 10px;
     }
+
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
     html {
       scroll-behavior: smooth;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .message-enter {
       opacity: 0;
       transform: translateY(10px);
     }
+
     .message-enter-active {
       opacity: 1;
       transform: translateY(0);
-      transition: opacity 300ms, transform 300ms;
+      transition: opacity 300ms ease-out, transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    .loading-dots {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .loading-dots span {
+      width: 8px;
+      height: 8px;
+      margin: 0 2px;
+      background-color: currentColor;
+      border-radius: 50%;
+      display: inline-block;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .loading-dots span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-radius: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .dark .typing-indicator {
+      background-color: #1F2937;
+    }
+
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      margin: 0 2px;
+      background-color: #6b7280;
+      border-radius: 50%;
+      display: inline-block;
+      animation: typing 1.4s infinite ease-in-out both;
+    }
+
+    .dark .typing-indicator span {
+      background-color: #9CA3AF;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(-5px);
+      }
+    }
+
+    .message-bubble {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      word-break: break-word;
+    }
+
+    .message-bubble:active {
+      transform: scale(0.98);
+    }
+
+    .menu-dropdown {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      visibility: hidden;
+    }
+
+    .menu-dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.7);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    .dark .ripple {
+      background-color: rgba(59, 130, 246, 0.4);
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .text-input {
+      transition: box-shadow 0.2s ease;
+    }
+
+    .text-input:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .dark .text-input:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    }
+
+    .status-dot {
+      box-shadow: 0 0 0 2px white;
+    }
+
+    .dark .status-dot {
+      box-shadow: 0 0 0 2px #1F2937;
+    }
+
+    .message-separator {
+      display: flex;
+      align-items: center;
+      margin: 1rem 0;
+      color: #9CA3AF;
+      font-size: 0.75rem;
+    }
+
+    .message-separator::before,
+    .message-separator::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #E5E7EB;
+      margin: 0 0.5rem;
+    }
+
+    .dark .message-separator::before,
+    .dark .message-separator::after {
+      border-bottom-color: #374151;
     }
   </style>
 </head>
 
-<body class="bg-secondary-100 h-screen flex flex-col font-sans antialiased">
+<body class="bg-gray-50 dark:bg-gray-900 h-screen flex flex-col font-sans antialiased transition-colors duration-200 text-gray-800 dark:text-gray-200">
 
-  <!-- Top Bar - Enhanced with subtle shadow and better spacing -->
-  <header class="p-4 border-b border-gray-200 bg-white flex items-center justify-between sticky top-0 z-50 shadow-sm">
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-3">
-      <img src="<%= user.profilePic %>" alt="Profile"
-        class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md" />
+      <div class="relative">
+        <img src="<%= user.profilePic || '/default-avatar.png' %>" alt="<%= user.username %>'s profile picture"
+          class="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-md hover:shadow-lg transition-all duration-200" />
+        <% if (user.isOnline==="true" ) { %>
+          <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full status-dot"></span>
+        <% } %>
+      </div>
       <div class="flex flex-col leading-tight">
-        <h1 class="text-base font-semibold text-gray-800">@<%= user.username %></h1>
-        <% if (user.isOnline == 1) { %>
+        <h1 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <%= user.username %>
+        </h1>
+        <% if (user.isOnline==="true" ) { %>
           <div class="flex items-center">
-            <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
-            <span class="text-xs text-gray-600 font-medium">Online</span>
+            <span class="text-xs text-green-600 dark:text-green-400 font-medium">Online</span>
           </div>
         <% } else { %>
-          <span class="text-xs text-gray-400 font-medium">Last seen <%= user.lastSeen %></span>
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            Last seen <%= new Date(user.lastSeen).toLocaleString("en-IN", { 
+              timeZone: 'Asia/Kolkata', 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              hour12: true 
+            }) %>
+          </span>
         <% } %>
       </div>
     </div>
-    <a href="/api/v1/auth/logout" class="text-gray-500 hover:text-primary-500 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-        stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M15 19l-7-7 7-7" />
-      </svg>
-    </a> 
+    <div class="flex items-center gap-4">
+      <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" aria-label="Toggle dark mode">
+        <!-- Moon icon (shown in light mode) -->
+        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <!-- Sun icon (shown in dark mode) -->
+        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      </button>
+      <div class="relative">
+        <button type="button" id="menuButton" class="menu-button p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" aria-label="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z" />
+          </svg>
+        </button>
+
+        <!-- Dropdown menu -->
+        <div id="menuDropdown" class="menu-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
+          <% if (currentUser.favouriteUsers.includes(user._id.toString())) { %>
+            <form action="/api/v1/user/unfavourite/<%= user._id %>" method="POST" class="menu-item">
+              <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Remove from Favorites
+              </button>
+            </form>
+          <% } else { %>
+            <form action="/api/v1/user/favourate/<%= user._id %>" method="POST" class="menu-item">
+              <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                Add to Favorites
+              </button>
+            </form>
+          <% } %>
+
+          <a href="/settings/<%= user._id %>" class="menu-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Settings
+          </a>
+
+          <a href="#" onclick="searchChat('<%= user._id %>')" class="menu-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Search
+          </a>
+
+          <form method="POST" action="/chat/delete/<%= user._id %>" class="menu-item">
+            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors duration-150">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete Chat
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <!-- Chat Area - Improved message container with better spacing -->
-  <main id="messages"
-    class="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-gradient-to-b from-secondary-100 to-white w-full max-w-screen mx-auto">
-    <!-- Messages will be dynamically appended here -->
+  <!-- Messages -->
+  <main id="messages" class="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-white dark:bg-gray-900 w-full max-w-2xl mx-auto">
+    <!-- Loading indicator for initial load -->
+    <div id="loadingIndicator" class="flex justify-center items-center h-full">
+      <div class="loading-dots text-primary-500">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <!-- Typing indicator -->
+    <div id="typingIndicator" class="hidden flex items-start gap-2 mb-2">
+      <img src="<%= user.profilePic || '/default-avatar.png' %>" alt="<%= user.username %> is typing"
+        class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 shadow-sm flex-shrink-0" />
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
   </main>
 
-  <!-- Chat Input - Enhanced with better buttons and input styling -->
-  <form id="chatForm"
-    class="flex items-center gap-2 p-3 border-t border-gray-200 bg-white sticky bottom-0 w-full max-w-screen mx-auto px-4">
-    <button type="button" class="p-2 text-gray-500 hover:text-primary-500 rounded-full hover:bg-gray-100 transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+  <!-- Chat Input -->
+  <form id="chatForm" class="flex items-center gap-2 p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0 w-full max-w-2xl mx-auto px-4">
+    <button type="button" id="emojiButton" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" aria-label="Add emoji">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </button>
-    <input type="text" id="message" placeholder="Type a message..." required autocomplete="off"
-      class="flex-1 px-4 py-2.5 bg-secondary-100 rounded-3xl text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all duration-200 placeholder-gray-500" />
-    <button type="submit"
-      class="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 shadow-md transition-colors duration-200 flex items-center justify-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+    <textarea id="message" placeholder="Type a message..." rows="1" required autocomplete="off"
+      class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-3xl text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 resize-none placeholder-gray-500 dark:placeholder-gray-400 text-gray-800 dark:text-gray-200 text-input"></textarea>
+    <button type="submit" id="sendButton" class="send-button p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 shadow-md flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200" aria-label="Send message">
+      <svg id="sendIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" />
+      </svg>
+      <svg id="loadingSpinner" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden animate-spin" fill="none" viewBox="0 0 24 24">
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
     </button>
   </form>
 
+  <!-- Scripts -->
   <script>
     const currentUserId = "<%= currentUser._id %>";
     const currentUsername = "<%= currentUser.username %>";
     const currentUserPic = "<%= currentUser.profilePic %>";
     const targetUserId = "<%= user._id %>";
     const targetUserPic = "<%= user.profilePic %>";
+    const targetUsername = "<%= user.username %>";
 
-    const socket = io("/ChatLock", {
-      auth: { token: currentUserId }
-    });
-
+    const socket = io("/ChatLock", { auth: { token: currentUserId } });
     const messagesDiv = document.getElementById('messages');
     const chatForm = document.getElementById('chatForm');
     const messageInput = document.getElementById('message');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const sendButton = document.getElementById('sendButton');
+    const sendIcon = document.getElementById('sendIcon');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const menuButton = document.getElementById('menuButton');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const themeToggle = document.getElementById('themeToggle');
+    const moonIcon = document.getElementById('moonIcon');
+    const sunIcon = document.getElementById('sunIcon');
 
-    // Load chat history
-    window.addEventListener("DOMContentLoaded", async () => {
+    // Track states
+    let lastSeenMessageId = null;
+    let observer = null;
+    let typingTimeout = null;
+    let isTyping = false;
+    let darkMode = localStorage.getItem('darkMode') === 'true';
+    let lastMessageDate = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set initial theme
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeToggle();
+
+      loadChatHistory();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      messageInput.addEventListener('input', handleInput);
+      messageInput.addEventListener('keydown', handleKeyDown);
+      messageInput.addEventListener('blur', stopTyping);
+      chatForm.addEventListener('submit', handleSubmit);
+      
+      // Menu dropdown toggle
+      menuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('hidden');
+        menuDropdown.classList.toggle('show');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!menuButton.contains(e.target) && !menuDropdown.contains(e.target)) {
+          menuDropdown.classList.add('hidden');
+          menuDropdown.classList.remove('show');
+        }
+      });
+
+      // Theme toggle
+      themeToggle.addEventListener('click', toggleTheme);
+
+      // Add ripple effect to buttons
+      document.querySelectorAll('.send-button').forEach(button => {
+        button.addEventListener('click', createRipple);
+      });
+
+      // Handle clicks on message bubbles
+      messagesDiv.addEventListener('click', handleMessageClick);
+    }
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      localStorage.setItem('darkMode', darkMode);
+      
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      updateThemeToggle();
+    }
+
+    function updateThemeToggle() {
+      if (darkMode) {
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+      } else {
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+      }
+    }
+
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const circle = document.createElement('span');
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+      circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+      circle.classList.add('ripple');
+
+      const ripple = button.getElementsByClassName('ripple')[0];
+      if (ripple) {
+        ripple.remove();
+      }
+
+      button.appendChild(circle);
+    }
+
+    // Typing indicator functions
+    function handleInput() {
+      // Auto-resize textarea
+      this.style.height = 'auto';
+      this.style.height = `${Math.min(this.scrollHeight, 120)}px`;
+
+      // Start/continue typing indicator
+      if (!isTyping && this.value.trim() !== '') {
+        isTyping = true;
+        socket.emit('typing', { from: currentUserId, to: targetUserId, isTyping: true });
+      }
+
+      // Reset typing timeout
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(stopTyping, 2000);
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(e);
+      }
+    }
+
+    function stopTyping() {
+      if (isTyping) {
+        isTyping = false;
+        clearTimeout(typingTimeout);
+        socket.emit('typing', { from: currentUserId, to: targetUserId, isTyping: false });
+      }
+    }
+
+    // Socket event for typing indicator
+    socket.on('typing', (data) => {
+      if (data.from === targetUserId && data.to === currentUserId) {
+        if (data.isTyping) {
+          typingIndicator.classList.remove('hidden');
+          scrollToBottom();
+        } else {
+          typingIndicator.classList.add('hidden');
+        }
+      }
+    });
+
+    async function loadChatHistory() {
       try {
         const res = await fetch(`/api/v1/user/chat/${currentUserId}/${targetUserId}`);
         const data = await res.json();
         if (data.success) {
-          data.messages.forEach(msg => {
-            appendMessage(
-              msg.sender_id === currentUserId ? currentUsername : "<%= user.username %>",
-              msg.message,
-              msg.sender_id === currentUserId,
-              msg.sender_id === currentUserId ? currentUserPic : targetUserPic,
-              new Date(msg.timestamp)
-            );
-          });
+          messagesDiv.innerHTML = '';
+
+          if (data.messages.length === 0) {
+            showEmptyState();
+          } else {
+            data.messages.forEach(msg => {
+              const ts = msg.timestamp;
+              const timestamp = ts ? new Date(typeof ts === "string" ? ts : ts.toISOString()) : new Date();
+              
+              // Check if we need to add a date separator
+              addDateSeparatorIfNeeded(timestamp);
+              
+              appendMessage(
+                msg.sender_id === currentUserId ? currentUsername : targetUsername,
+                msg.content || msg.message,
+                msg.sender_id === currentUserId,
+                msg.sender_id === currentUserId ? currentUserPic : targetUserPic,
+                timestamp,
+                msg._id,
+                msg.seen || false
+              );
+
+              if (msg.sender_id === targetUserId) {
+                lastSeenMessageId = msg._id;
+              }
+            });
+          }
           scrollToBottom();
+          setupSeenObserver();
         }
       } catch (err) {
-        console.error("Failed to load chat history", err);
+        console.error("Chat history error", err);
+        showErrorState();
       }
-    });
+    }
 
-    // Handle form submission
-    chatForm.addEventListener('submit', async function (e) {
+    function addDateSeparatorIfNeeded(date) {
+      const messageDate = new Date(date).toDateString();
+      const lastDate = lastMessageDate ? new Date(lastMessageDate).toDateString() : null;
+      
+      if (messageDate !== lastDate) {
+        const separator = document.createElement('div');
+        separator.className = 'message-separator';
+        separator.textContent = formatDate(date);
+        messagesDiv.appendChild(separator);
+        lastMessageDate = date;
+      }
+    }
+
+    function formatDate(date) {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const messageDate = new Date(date);
+      
+      if (messageDate.toDateString() === today.toDateString()) {
+        return 'Today';
+      } else if (messageDate.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+      } else {
+        return messageDate.toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+    }
+
+    function showEmptyState() {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 py-8';
+      emptyState.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <p class="text-lg font-medium">No messages yet</p>
+        <p class="text-sm mt-1">Start the conversation with ${targetUsername}</p>
+      `;
+      messagesDiv.appendChild(emptyState);
+    }
+
+    function showErrorState() {
+      loadingIndicator.innerHTML = `
+        <div class="text-center text-red-500 fade-in">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p>Failed to load messages</p>
+          <button onclick="window.location.reload()" class="mt-3 px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors duration-200">
+            Retry
+          </button>
+        </div>
+      `;
+    }
+
+    function setupSeenObserver() {
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const messageId = entry.target.getAttribute('data-message-id');
+            const isOwnMessage = entry.target.getAttribute('data-is-own') === 'true';
+
+            if (!isOwnMessage && messageId) {
+              markMessageAsSeen(messageId);
+            }
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll('.message-container[data-is-own="false"]').forEach(el => {
+        observer.observe(el);
+      });
+    }
+
+    async function markMessageAsSeen(messageId) {
+      try {
+        updateSeenBadge(messageId, true);
+
+        await fetch('/api/v1/user/mark-seen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messageId, seenBy: currentUserId })
+        });
+
+        socket.emit('message_seen', {
+          messageId,
+          seenBy: currentUserId,
+          seenAt: new Date().toISOString()
+        });
+
+        lastSeenMessageId = messageId;
+      } catch (err) {
+        console.error("Error marking message as seen:", err);
+      }
+    }
+
+    function updateSeenBadge(messageId, isSeen) {
+      const seenBadge = document.querySelector(`.seen-badge[data-message-id="${messageId}"]`);
+      if (seenBadge) {
+        seenBadge.innerHTML = isSeen ? `
+          <span class="text-xs text-gray-500 dark:text-gray-400">Seen</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        ` : `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        `;
+      }
+    }
+
+    async function handleSubmit(e) {
       e.preventDefault();
       const msg = messageInput.value.trim();
       if (!msg) return;
 
-      const timestamp = new Date();
-      const data = {
+      sendButton.disabled = true;
+      sendIcon.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+
+      const timestamp = new Date().toISOString();
+      const messageId = generateId();
+
+      const payload = {
         from: currentUserId,
         to: targetUserId,
         message: msg,
         fromName: currentUsername,
-        timestamp: timestamp
+        timestamp,
+        messageId
       };
 
-      socket.emit('send_message', data);
+      socket.emit("send_message", payload);
 
       try {
-        await fetch('/api/v1/user/save-chat', {
+        const response = await fetch('/api/v1/user/save-chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            _id: messageId,
             sender_id: currentUserId,
             receiver_id: targetUserId,
             message: msg,
-            timestamp: timestamp
+            timestamp,
+            seen: false
           })
         });
-      } catch (error) {
-        console.error('Failed to save chat:', error);
-      }
 
-      appendMessage(currentUsername, msg, true, currentUserPic, timestamp);
-      messageInput.value = '';
-      scrollToBottom();
-    });
-
-    // Receive new messages
-    socket.on('loadNewChat', function (data) {
-      if (data.from === targetUserId && data.to === currentUserId) {
-        appendMessage(data.fromName, data.message, false, targetUserPic, new Date(data.timestamp));
+        const data = await response.json();
+        if (data.success) {
+          // Add date separator if needed
+          addDateSeparatorIfNeeded(timestamp);
+          
+          appendMessage(
+            currentUsername,
+            msg,
+            true,
+            currentUserPic,
+            new Date(timestamp),
+            data.message._id,
+            false
+          );
+        }
+      } catch (err) {
+        console.error("Error saving chat:", err);
+        showErrorMessage();
+      } finally {
+        sendButton.disabled = false;
+        sendIcon.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
         scrollToBottom();
+        stopTyping();
+      }
+    }
+
+    function showErrorMessage() {
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'text-center text-red-500 text-sm py-2 fade-in';
+      errorMsg.textContent = 'Failed to send message. Please try again.';
+      messagesDiv.appendChild(errorMsg);
+    }
+
+    // Socket events
+    socket.on("message_seen_notification", (data) => {
+      if (data.seenBy === targetUserId) {
+        updateSeenBadge(data.messageId, true);
       }
     });
 
-    // Append message to chat
-    function appendMessage(sender, message, isOwn, profilePic, timestamp) {
-      const msgWrapper = document.createElement('div');
-      msgWrapper.className = `flex items-end gap-2 mb-2 ${isOwn ? 'justify-end' : 'justify-start'}`;
-      
-      // Add animation class
-      msgWrapper.classList.add('message-enter');
-      setTimeout(() => {
-        msgWrapper.classList.add('message-enter-active');
-      }, 10);
+    socket.on("loadNewChat", (data) => {
+      if (data.from === targetUserId && data.to === currentUserId) {
+        const timestamp = new Date(data.timestamp);
+        if (isNaN(timestamp)) {
+          console.error("Invalid timestamp received:", data.timestamp);
+        } else {
+          // Add date separator if needed
+          addDateSeparatorIfNeeded(timestamp);
+          
+          appendMessage(
+            targetUsername,
+            data.message,
+            false,
+            targetUserPic,
+            timestamp,
+            data.messageId,
+            false
+          );
+          scrollToBottom();
+          lastSeenMessageId = data.messageId;
+
+          if (observer) {
+            const newMessage = document.querySelector(`.message-container[data-message-id="${data.messageId}"]`);
+            if (newMessage) observer.observe(newMessage);
+          }
+        }
+      }
+    });
+
+    function handleMessageClick(e) {
+      const messageContainer = e.target.closest('.message-container');
+      if (messageContainer) {
+        const messageId = messageContainer.getAttribute('data-message-id');
+        const isOwnMessage = messageContainer.getAttribute('data-is-own') === 'true';
+
+        if (isOwnMessage) {
+          // Show detailed seen status
+          const seenBadge = messageContainer.querySelector('.seen-badge');
+          if (seenBadge) {
+            seenBadge.innerHTML = `
+              <span class="text-xs text-gray-500 dark:text-gray-400">Tap again to mark as unread</span>
+            `;
+            setTimeout(() => updateSeenBadge(messageId, true), 2000);
+          }
+        }
+      }
+    }
+
+    function appendMessage(sender, message, isOwn, profilePic, timestamp, messageId, isSeen) {
+      if (messagesDiv.children.length === 1 && messagesDiv.children[0].classList.contains('flex-col')) {
+        messagesDiv.innerHTML = '';
+      }
+
+      if (loadingIndicator.parentNode) {
+        loadingIndicator.remove();
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex items-end gap-2 mb-2 ${isOwn ? 'justify-end' : 'justify-start'} message-enter message-container`;
+      wrapper.setAttribute('data-message-id', messageId);
+      wrapper.setAttribute('data-is-own', isOwn);
+      setTimeout(() => wrapper.classList.add('message-enter-active'), 10);
 
       if (!isOwn) {
         const avatar = document.createElement('img');
         avatar.src = profilePic || '/default-avatar.png';
-        avatar.alt = sender;
-        avatar.className = 'w-8 h-8 rounded-full border-2 border-white shadow-sm flex-shrink-0';
-        msgWrapper.appendChild(avatar);
+        avatar.className = 'w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 shadow-sm flex-shrink-0 hover:shadow-md transition-all duration-200';
+        avatar.alt = `${sender}'s profile picture`;
+        avatar.loading = 'lazy';
+        wrapper.appendChild(avatar);
       }
 
-      const contentWrapper = document.createElement('div');
-      contentWrapper.className = `flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%]`;
+      const content = document.createElement('div');
+      content.className = `flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%]`;
 
-      const msgBubble = document.createElement('div');
-      msgBubble.className = `px-4 py-2 text-sm sm:text-base rounded-2xl shadow-sm ${
-        isOwn
-          ? 'bg-primary-500 text-white rounded-br-none'
-          : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'
-      }`;
-      msgBubble.textContent = message.text || message;
+      const bubble = document.createElement('div');
+      bubble.className = `px-4 py-2 text-sm sm:text-base rounded-2xl shadow-sm message-bubble ${isOwn ? 'bg-primary-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-bl-none'}`;
+      bubble.textContent = message;
 
-      // Add timestamp
-      const timeElement = document.createElement('div');
-      timeElement.className = `text-xs mt-1 px-1 text-gray-500 ${isOwn ? 'text-right' : 'text-left'}`;
-      timeElement.textContent = formatTime(timestamp);
+      // Add hover effect
+      bubble.addEventListener('mouseenter', () => {
+        bubble.classList.add('shadow-md');
+      });
+      bubble.addEventListener('mouseleave', () => {
+        bubble.classList.remove('shadow-md');
+      });
 
-      contentWrapper.appendChild(msgBubble);
-      contentWrapper.appendChild(timeElement);
-      msgWrapper.appendChild(contentWrapper);
-      
-      messagesDiv.appendChild(msgWrapper);
-    }
+      const meta = document.createElement('div');
+      meta.className = `flex items-center gap-1 mt-1 px-1 ${isOwn ? 'justify-end' : 'justify-start'}`;
 
-    function scrollToBottom() {
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      const time = document.createElement('div');
+      time.className = 'text-xs text-gray-500 dark:text-gray-400';
+      time.textContent = formatTime(timestamp);
+
+      meta.appendChild(time);
+
+      if (isOwn) {
+        const seenBadge = document.createElement('div');
+        seenBadge.className = 'flex items-center gap-1 seen-badge';
+        seenBadge.setAttribute('data-message-id', messageId);
+        seenBadge.innerHTML = isSeen ? `
+          <span class="text-xs text-gray-500 dark:text-gray-400">Seen</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        ` : `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        `;
+        meta.appendChild(seenBadge);
+      }
+
+      content.appendChild(bubble);
+      content.appendChild(meta);
+      wrapper.appendChild(content);
+      messagesDiv.appendChild(wrapper);
     }
 
     function formatTime(date) {
-      if (!date) return '';
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // Auto-resize textarea (if you change input to textarea)
-    function adjustInputHeight() {
-      messageInput.style.height = 'auto';
-      messageInput.style.height = `${Math.min(messageInput.scrollHeight, 120)}px`;
-    }
-
-    // For mobile devices - ensure input isn't obscured by keyboard
-    if ('visualViewport' in window) {
-      const visualViewport = window.visualViewport;
-      visualViewport.addEventListener('resize', () => {
-        scrollToBottom();
+      const d = new Date(date);
+      if (isNaN(d)) return 'Invalid Time';
+      return d.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
       });
     }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function scrollToBottom() {
+      messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
+    }
+
+    window.addEventListener('focus', () => {
+      if (lastSeenMessageId) {
+        markMessageAsSeen(lastSeenMessageId);
+      }
+    });
+
+    if ('visualViewport' in window) {
+      window.visualViewport.addEventListener('resize', scrollToBottom);
+    }
+
+    // Expose searchChat function to window
+    window.searchChat = function(userId) {
+      // Implement your search functionality here
+      console.log(`Searching chat with user ${userId}`);
+      // This would typically open a search modal or similar
+    };
   </script>
 </body>
 </html>
